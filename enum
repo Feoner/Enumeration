@@ -30,7 +30,7 @@ cd "$recon_dir" || exit
 echo "Performing DNS enumeration..."
 amass enum -d "$target_domain" -o amassdomains.txt
 subfinder -d "$target_domain" -o sfinderdomains.txt
-cat amaadomains.txt sfinderdomains.txt >> domains.txt
+cat amassdomains.txt sfinderdomains.txt >> domains.txt
 assetfinder --subs-only "$target_domain" >> domains.txt
 gau -subs "$target_domain" >> domains.txt
 cat domains.txt | sort -u > unique_domains.txt
@@ -55,7 +55,7 @@ if [ -n "$open_ports" ]; then
     # Run detailed scan (-sC for default scripts, -sV for version detection) on open ports
     for port in $open_ports; do
         echo "Running detailed scan on port $port"
-        nmap -sC -sV -p $port TARGET_IP_OR_HOSTNAME >> detailed_scan_results.txt
+        nmap -sC -sV -p $port -iL ip_addresses.txt >> detailed_scan_results.txt
     done
 else
     echo "No open ports found."
@@ -94,14 +94,6 @@ nuclei -l live_webapps.txt -t /Users/test/nuclei-templates
 echo "Performing CMS identification..."
 cat live_webapps.txt | cmsscan -o cms_results.txt
 
-# Perform technology stack identification
-echo "Performing technology stack identification..."
-cat live_webapps.txt | wappalyzer -o tech_stack_results.json
-
-# Perform Git repository enumeration
-echo "Performing Git repository enumeration..."
-gitrob -o gitrob_results.txt
-
 # Perform cloud storage enumeration
 echo "Performing cloud storage enumeration..."
 cloud_enum -d "$target_domain" -w /Users/test/github_tools/cloud_enum/enum_tools/fuzz.txt -o cloud_storage_results.txt
@@ -118,10 +110,6 @@ shodan search "$target_domain"
 echo "Performing email address enumeration..."
 theHarvester -d "$target_domain" -l 500 -b all
 
-# Perform social media enumeration
-echo "Performing social media enumeration..."
-sherlock "$target_domain"
-
 # Perform open S3 bucket enumeration
 echo "Performing open S3 bucket enumeration..."
 s3scanner --domain "$target_domain"
@@ -134,56 +122,29 @@ CORScanner -i live_webapps.txt
 echo "Performing HTTP security headers analysis..."
 cat live_webapps.txt | while read -r url; do echo "URL: $url"; echo; curl -I -L -s -S -k -X GET "$url"; echo; echo "======================================="; done
 
-# Perform API security testing
-echo "Performing API security testing..."
-#
-#
-
 # Perform SSRF testing
 #echo "Performing SSRF testing..."
 #ssrfmap -r ~/path-to-payloads.txt -i live_webapps.txt
-#could replace with something likek xssrocket
+#could replace with something likek xssrocket or dalfox
 
 # Perform XXE testing
 #echo "Performing XXE testing..."
 #xxe-requests -f live_webapps.txt -o xxe_results.txt
 # needs to be replaced
 
-# Perform deserialization testing
-echo "Performing deserialization testing..."
-ysoserial -g CommonsCollections1 "command" | java -jar target_webapp.jar
 
 # Perform GraphQL security testing
 echo "Performing GraphQL security testing..."
 gqless -u live_webapps.txt
 
-# Perform OAuth testing
-echo "Performing OAuth testing..."
-oauth2-attacker -c ~/path-to-config-file.yaml
-
 # Perform JWT testing
 echo "Performing JWT testing..."
 jwt_tool.py --url live_webapps.txt
-
-# Perform SOAP testing
-echo "Performing SOAP testing..."
-soapui -s ~/path-to-soapui-project.xml
 
 # Perform OSINT testing
 echo "Performing OSINT testing..."
 theHarvester -d "$target_domain" -l 200 -b google,bing,linkedin,twitter
 
-# Perform WHOIS history analysis
-echo "Performing WHOIS history analysis..."
-domlink -d "$target_domain" -u -w -c -r -s -o whois_history.txt
-
-# Perform domain name search
-echo "Performing domain name search..."
-domaintools_search "$target_domain"
-
-# Perform API pentesting or enumeration
-echo "Performing API pentesting or enumeration..."
-dredd api_spec.yaml live_webapps.txt
 
 # Capture screenshots of web applications
 echo "Capturing screenshots of web applications..."
@@ -199,57 +160,25 @@ dirsearch -u live_webapps.txt -o dirsearch_results.txt
 echo "Running JSParser..."
 JSParser -f live_webapps.txt -o jsparser_results.txt
 
-# knockpy
-echo "Running knockpy..."
-knockpy "$target_domain"
-
 # lazys3
 echo "Running lazys3..."
 lazys3 "$target_domain"
-
-# sqlmap-dev
-echo "Running sqlmap-dev..."
-sqlmap-dev -m live_webapps.txt --batch --random-agent --output-dir sqlmap_results
-
-# Sublist3r
-echo "Running Sublist3r..."
-sublist3r -d "$target_domain" -o sublist3r_results.txt
 
 # teh_s3_bucketeers
 echo "Running teh_s3_bucketeers..."
 teh_s3_bucketeers -l "$target_domain"
 
-# virtual-host-discovery
-echo "Running virtual-host-discovery..."
-virtual-host-discovery -target "$target_domain"
-
 # wpscan
 echo "Running wpscan..."
 wpscan --url "$target_domain" --enumerate ap,at,cb,dbe,m,u --plugins-detection aggressive --randomuseragent --token= --force --output wpscan_results.txt
-
-# webscreenshot
-echo "Running webscreenshot..."
-webscreenshot -i live_webapps.txt -w 8 -o webscreenshot_results
-
-# Massdns
-echo "Running Massdns..."
-massdns -r ~/path-to-resolvers.txt -t A -o S -w massdns_results.txt unique_domains.txt
 
 # Asnlookup
 echo "Running Asnlookup..."
 asnlookup -o asnlookup_results.txt unique_domains.txt
 
-# Unfurl
-echo "Running Unfurl..."
-unfurl --urlfile live_webapps.txt > unfurl_results.txt
-
-# Waybackurls
-echo "Running Waybackurls..."
-cat live_webapps.txt | waybackurls > waybackurls_results.txt
-
-# Httprobe
-echo "Running Httprobe..."
-cat unique_domains.txt | httprobe -c 50 > live_domains.txt
+#Dalfox
+echo "Running automated XSS findings..
+assetfinder "$target_domain" | gau |  dalfox pipe --remote-payloads portswigger --waf-evasion -o xss.txt
 
 # Finished
 echo "Reconnaissance completed."
