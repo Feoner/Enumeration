@@ -30,14 +30,14 @@ RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-ins
     && rm -rf /var/lib/apt/lists/*
 
 
-ARG RUSTSCAN_VERSION=2.1.1
-RUN set -eux; \
-    wget -O /tmp/rustscan.deb "https://github.com/RustScan/RustScan/releases/download/${RUSTSCAN_VERSION}/rustscan_${RUSTSCAN_VERSION}_amd64.deb" && \
-    apt-get update && apt-get install -y /tmp/rustscan.deb && \
-    rm -f /tmp/rustscan.deb && rm -rf /var/lib/apt/lists/*
+FROM rust:1.80-bullseye AS rustbuild
+RUN cargo install rustscan
 
-# Copy Go-built tools
+
+# Copy go and rust tools
 COPY --from=gobuild /go/bin/* /usr/local/bin/
+COPY --from=rustbuild /usr/local/cargo/bin/rustscan /usr/local/bin/rustscan
+
 
 # Python tools: LinkFinder, XSStrike, PwnXSS
 RUN mkdir -p /opt/tools && \
