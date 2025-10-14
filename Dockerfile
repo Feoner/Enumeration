@@ -1,5 +1,5 @@
 
-FROM golang:1.22-bullseye AS gobuild
+FROM golang:1.24-bookworm AS gobuild
 
 ENV CGO_ENABLED=0 \
     GO111MODULE=on \
