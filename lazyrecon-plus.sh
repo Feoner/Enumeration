@@ -10,6 +10,7 @@ OUT_ROOT=${OUT_ROOT:-/work/results}
 WORDLIST_API=${WORDLIST_API:-apiroutes}
 KR_DEPTH=${KR_DEPTH:-2}
 TIMEOUT=${TIMEOUT:-10}
+AMASS_TIMEOUT=${AMASS_TIMEOUT:-300}
 
 LINKFINDER_DIR=${LINKFINDER_DIR:-/opt/tools/LinkFinder}
 XSSTRIKE_DIR=${XSSTRIKE_DIR:-/opt/tools/XSStrike}
@@ -76,7 +77,9 @@ recon_domain(){
   log "Enumerating subdomains for ${domain}"
   subfinder -silent -timeout "${TIMEOUT}" -t "${THREADS}" -d "${domain}" -o "${outdir}/subdomains/subfinder.txt" || true
   assetfinder --subs-only "${domain}" | sed 's/\r$//' | sort -u > "${outdir}/subdomains/assetfinder.txt" || true
-  amass enum -passive -d "${domain}" -o "${outdir}/subdomains/amass.txt" || true
+  log "Running Amass (timeout ${AMASS_TIMEOUT}s)"
+  timeout --preserve-status "${AMASS_TIMEOUT}"s \
+    amass enum -passive -d "${domain}" -o "${outdir}/subdomains/amass.txt" || true
 
   cat "${outdir}"/subdomains/*.txt 2>/dev/null | sed 's/^\*\.//' | sort -u > "${outdir}/subdomains/all.txt"
   log "$(wc -l < "${outdir}/subdomains/all.txt" 2>/dev/null) unique subdomains"
