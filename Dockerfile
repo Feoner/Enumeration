@@ -1,4 +1,5 @@
 
+ 
 FROM golang:1.24-bookworm AS gobuild
 
 # Allow forward toolchain switching if a module requests it
@@ -26,7 +27,7 @@ FROM rust:1.83-bullseye AS rustbuild
 RUN cargo install --locked --version 2.4.1 rustscan
 
 FROM debian:bookworm-slim
-
+RUN apt-get update && apt-get install -y coreutils
 RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
       ca-certificates curl wget bash git jq nmap unzip \
       python3 python3-pip python3-venv \
