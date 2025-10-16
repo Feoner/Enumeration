@@ -20,3 +20,10 @@ docker run --rm -it \
   lazyrecon-plus:latest \
   -l /work/scope.txt --gh-org your-github-org
 ```
+
+## Making sure script continues to run even if session detaches 
+```
+nohup docker run --rm -v "$PWD/results:/work/results" \
+  -v "$HOME/.config/subfinder:/root/.config/subfinder" \
+  lazyrecon-plus:latest -d example.com > lazyrecon.log 2>&1 &
+```
