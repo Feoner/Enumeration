@@ -56,7 +56,7 @@ mkdir -p "${OUT_ROOT}"
 START_TS=$(date -Is)
 
 need(){ command -v "$1" >/dev/null 2>&1 || { err "Missing required tool: $1"; exit 2; }; }
-for bin in subfinder assetfinder amass httpx nuclei rustscan nmap kr dalfox jq curl; do
+for bin in subfinder assetfinder amass httpx nuclei  kr dalfox jq curl; do
   need "$bin" || true
 done
 
@@ -90,10 +90,10 @@ recon_domain(){
   cut -d ' ' -f1 "${outdir}/hosts/live.txt" > "${outdir}/hosts/live_urls.txt"
   awk '{print $NF}' "${outdir}/hosts/live.txt" | tr -d '[]' | sort -u > "${outdir}/hosts/ips.txt"
 
-  log "Port scanning with rustscan -> nmap"
-  if [[ -s "${outdir}/hosts/ips.txt" ]]; then
-    rustscan -a "$(paste -sd, "${outdir}/hosts/ips.txt")" --ulimit 5000 -- -sV -sC -Pn -oA "${outdir}/scans/nmap_rustscan" || true
-  fi
+  #log "Port scanning with rustscan -> nmap"
+  #if [[ -s "${outdir}/hosts/ips.txt" ]]; then
+  #  rustscan -a "$(paste -sd, "${outdir}/hosts/ips.txt")" --ulimit 5000 -- -sV -sC -Pn -oA "${outdir}/scans/nmap_rustscan" || true
+  #fi
 
   if command -v waybackurls >/dev/null 2>&1; then
     log "Pulling Wayback Machine URLs"
@@ -213,7 +213,7 @@ generate_report(){
 </div>
 <div class="sec"><h2>Live Hosts & Ports</h2>
   <p>Live URLs: ../hosts/live_urls.txtlive_urls.txt</a> — IPs: ../hosts/ips.txtips.txt</a></p>
-  <p>Nmap (via rustscan): ../scans/nmap_rustscan.nmapnmap</a> | ../scans/nmap_rustscan.gnmapgnmap</a> | ../scans/nmap_rustscan.xmlxml</a></p>
+<!--  <p>Nmap (via rustscan): ../scans/nmap_rustscan.nmapnmap</a> | ../scans/nmap_rustscan.gnmapgnmap</a> | ../scans/nmap_rustscan.xmlxml</a></p> -->
 </div>
 <div class="sec"><h2>API & Endpoint Discovery</h2>
   <p>Kiterunner NDJSON: <a href="../unner.ndjsonkiterunner.ndjson</a></p>
